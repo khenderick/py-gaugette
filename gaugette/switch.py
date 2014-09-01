@@ -1,7 +1,7 @@
 import wiringpi2
 
-class Switch:
 
+class Switch:
     def __init__(self, pin, pullUp=True):
         self.pin = pin
         self.pullUp = pullUp
@@ -19,6 +19,6 @@ class Switch:
             # to ground, state will be 1 when the switch is open, and 0
             # when it is closed.  We invert the value here to a more
             # conventional representation of 0:open, 1:closed.
-            return 1-state
+            return 1 - state
         else:
             return state

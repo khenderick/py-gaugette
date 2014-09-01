@@ -3,14 +3,15 @@
 import sys
 import urllib
 try:
-    import httplib # python2
+    import httplib  # python2
 except ImportError:
-    import http.client # python3
+    import http.client  # python3
 import os.path
 import json
 import time
 import gdata.spreadsheet.service
 import gdata.docs.service
+
 
 class OAuth:
 
@@ -22,8 +23,8 @@ class OAuth:
         self.verfication_url = None
         self.token_file = 'oauth_token.json'
         self.scope = [
-            'https://spreadsheets.google.com/feeds', #  scope information for the Google Spreadsheets API
-            'https://docs.google.com/feeds',         # if an application needs to create spreadsheets, or otherwise manipulate their metadata,
+            'https://spreadsheets.google.com/feeds',  #  scope information for the Google Spreadsheets API
+            'https://docs.google.com/feeds',          # if an application needs to create spreadsheets, or otherwise manipulate their metadata,
         ]
         self.host = 'accounts.google.com'
         self.reset_connection()
@@ -50,7 +51,7 @@ class OAuth:
         f.close()
 
     def has_token(self):
-        return self.token != None
+        return self.token is not None
 
     def get_user_code(self):
         self.conn.request(
@@ -61,9 +62,9 @@ class OAuth:
                 'scope'    : ' '.join(self.scope)
                 }),
             {"Content-type": "application/x-www-form-urlencoded"}
-            )
+        )
         response = self.conn.getresponse()
-        if (response.status == 200):
+        if response.status == 200:
             data = json.loads(response.read())
             self.device_code = data['device_code']
             self.user_code = data['user_code']
@@ -74,13 +75,13 @@ class OAuth:
             print(response.read())
             sys.exit()
         return self.user_code
-    
+
     def get_new_token(self):
         # call get_device_code if not already set
         if not self.user_code:
             self.get_user_code()
-            
-        while self.token == None:
+
+        while self.token is None:
             self.conn.request(
                 "POST",
                 "/o/oauth2/token",
@@ -89,12 +90,12 @@ class OAuth:
                     'client_secret' : self.client_secret,
                     'code'          : self.device_code,
                     'grant_type'    : 'http://oauth.net/grant_type/device/1.0'
-                    }),
+                }),
                 {"Content-type": "application/x-www-form-urlencoded"}
-                )
+            )
 
             response = self.conn.getresponse()
-            if (response.status == 200):
+            if response.status == 200:
                 data = json.loads(response.read())
                 # print data
                 if 'access_token' in data:
@@ -113,12 +114,12 @@ class OAuth:
                 'client_secret' : self.client_secret,
                 'refresh_token' : refresh_token,
                 'grant_type'    : 'refresh_token'
-                }),
-            {"Content-type": "application/x-www-form-urlencoded"}            
-            )
+            }),
+            {"Content-type": "application/x-www-form-urlencoded"}
+        )
 
         response = self.conn.getresponse()
-        if (response.status == 200):
+        if response.status == 200:
             data = json.loads(response.read())
             if 'access_token' in data:
                 self.token = data
@@ -131,7 +132,7 @@ class OAuth:
             print("Unexpected response %d to renewal request" % response.status)
             print(response.read())
         return False
-              
+
     def spreadsheet_service(self):
         headers = {
             "Authorization": "%s %s" % (self.token['token_type'], self.token['access_token'])
@@ -145,4 +146,4 @@ class OAuth:
         }
         client = gdata.docs.service.DocsService(additional_headers=headers)
         return client
-        
+
